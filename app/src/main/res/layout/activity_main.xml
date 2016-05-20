@@ -10,6 +10,9 @@
     tools:context="com.wordpress.iwih.sunshine.MainActivity">
 
     <fragment
+        android:id="@+id/forecast_fragment_main"
+        android:name="com.wordpress.iwih.sunshine.fragment_main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></fragment>
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_main"></fragment>
 </FrameLayout>
