@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void refreshData(View view) {
         FragmentManager fragManager = getFragmentManager();
-        fragment_main mainFragement = (fragment_main) fragManager.findFragmentById(R.id.forecast_fragment_main);
+        ForecastFragment mainFragement = (ForecastFragment) fragManager.findFragmentById(R.id.forecast_fragment_main);
         mainFragement.fetchWeatherData();
     }
 
