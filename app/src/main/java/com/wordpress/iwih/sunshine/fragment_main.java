@@ -65,10 +65,10 @@ public class fragment_main extends Fragment {
     }
 
     public void fetchWeatherData() {
-        String forecastJsonStr = (new AsyncFetchWeather().doInBackground());
+        String forecastJsonStr = (new FetchWeatherAsync().doInBackground());
     }
 
-    private class AsyncFetchWeather extends AsyncTask<Void, Void, String> {
+    private class FetchWeatherAsync extends AsyncTask<Void, Void, String> {
 
         @Override
         protected String doInBackground(Void... params) {
@@ -85,7 +85,8 @@ public class fragment_main extends Fragment {
             String forecastJsonStr = null;
 
             try {
-                URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=as samawah&mode=json&units=metric&cnt=7&appid=c298ffc0ae3c0785df75268904871c9b");
+                //http://api.openweathermap.org/data/2.5/forecast/daily?q=as samawah&mode=json&units=metric&cnt=7&appid=c298ffc0ae3c0785df75268904871c9b
+                URL url = new URL("http://www.google.com");
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -97,7 +98,7 @@ public class fragment_main extends Fragment {
                 InputStream inputStream = urlConnection.getInputStream();
                 StringBuffer jsonStrBuffer = new StringBuffer();
                 if (inputStream == null) {
-                    // Nothing to do.
+                    // Nothing to do
                     forecastJsonStr = null;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
