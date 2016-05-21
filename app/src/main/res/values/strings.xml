@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">SunShine</string>
     <string name="refresh">Refresh</string>
-    <string name="owm_appid">c298ffc0ae3c0785df75268904871c9b</string>
+    <string name="owm_appid" translatable="false">c298ffc0ae3c0785df75268904871c9b</string>
 </resources>

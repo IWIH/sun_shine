@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +28,8 @@ import java.util.List;
  */
 public class ForecastFragment extends Fragment {
 
+    final String LOG_TAG = "ForecastFragment";
+    final Logger log = new Logger("ForecastFragment");
 
     public ForecastFragment() {
         // Required empty public constructor
@@ -64,16 +67,16 @@ public class ForecastFragment extends Fragment {
 
     }
 
-    public void fetchWeatherData() {
-        String forecastJsonStr = (new FetchWeatherAsync().doInBackground());
+    public void fetchWeatherData() throws IOException {
+        new FetchWeatherAsync().execute();
     }
 
-    private class FetchWeatherAsync extends AsyncTask<Void, Void, String> {
+    private class FetchWeatherAsync extends AsyncTask<Void, Void, Void> {
 
         @Override
-        protected String doInBackground(Void... params) {
-            return getWeatherData();
-
+        protected Void doInBackground(Void... params) {
+            getWeatherData();
+            return null;
         }
 
         public String getWeatherData() {
@@ -91,15 +94,16 @@ public class ForecastFragment extends Fragment {
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
-                Log.v("forecast_fragment", "Opening Connection...");
+                log.verbosLog("URL: \"" + urlConnection.getURL().toString() + "\"");
                 urlConnection.connect();
+                log.verbosLog("Connection opened..");
 
                 // Read the input stream into a String
                 InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer jsonStrBuffer = new StringBuffer();
+                StringBuilder jsonStrBuffer = new StringBuilder();
                 if (inputStream == null) {
                     // Nothing to do
-                    forecastJsonStr = null;
+                    return null;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -108,7 +112,7 @@ public class ForecastFragment extends Fragment {
                     // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
                     // But it does make debugging a *lot* easier if you print out the completed
                     // buffer for debugging.
-                    jsonStrBuffer.append(line + "\n");
+                    jsonStrBuffer.append(line).append("\n");
                 }
 
                 if (jsonStrBuffer.length() == 0) {
