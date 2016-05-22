@@ -66,7 +66,7 @@ public class ForecastFragment extends Fragment {
 
     }
 
-    public void fetchWeatherData() throws IOException {
+    public void fetchWeatherData() {
         new FetchWeatherAsync().execute();
     }
 

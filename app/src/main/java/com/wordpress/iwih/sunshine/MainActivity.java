@@ -20,9 +20,10 @@ public class MainActivity extends AppCompatActivity {
         logger.v("Activity Inflated");
     }
 
-    public void refreshData(View view) throws IOException {
+    public void refreshData(View view)  {
         FragmentManager fragManager = getFragmentManager();
-        ForecastFragment forecastFragment = (ForecastFragment) fragManager.findFragmentById(R.id.forecast_fragment_main);
+        ForecastFragment forecastFragment = (ForecastFragment)
+                fragManager.findFragmentById(R.id.forecast_fragment_main);
         forecastFragment.fetchWeatherData();
     }
 
