@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,9 +93,9 @@ public class ForecastFragment extends Fragment {
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
-                log.verbosLog("URL: \"" + urlConnection.getURL().toString() + "\"");
+                log.v("URL: \"" + urlConnection.getURL().toString() + "\"");
                 urlConnection.connect();
-                log.verbosLog("Connection opened..");
+                log.v("Connection opened..");
 
                 // Read the input stream into a String
                 InputStream inputStream = urlConnection.getInputStream();

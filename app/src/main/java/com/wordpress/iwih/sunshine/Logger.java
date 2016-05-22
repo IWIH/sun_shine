@@ -19,23 +19,23 @@ public class Logger {
         }
     */
 
-    public void verbosLog(String msg) {
+    public void v(String msg) {
         Log.v(logTag, msg);
     }
 
-    public void errorLog(String msg) {
+    public void e(String msg) {
         Log.e(logTag, msg);
     }
 
-    public void infoLog(String msg) {
+    public void i(String msg) {
         Log.i(logTag, msg);
     }
 
-    public void warnLog(String msg) {
+    public void w(String msg) {
         Log.w(logTag, msg);
     }
 
-    public void debugLog(String msg) {
+    public void d(String msg) {
         Log.d(logTag, msg);
     }
 }
