@@ -2,6 +2,7 @@ package com.wordpress.iwih.sunshine;
 
 
 import android.app.Fragment;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -88,6 +89,12 @@ public class ForecastFragment extends Fragment {
 
             try {
                 //http://api.openweathermap.org/data/2.5/forecast/daily?q=as samawah&mode=json&units=metric&cnt=7&appid=c298ffc0ae3c0785df75268904871c9b
+                Uri.Builder uriBuidler = new Uri.Builder();
+                uriBuidler.scheme("http");
+                uriBuidler.authority("api.openweathermap.org");
+                uriBuidler.appendPath("data").appendPath("2.5").appendPath("forecast").appendPath("daily");
+
+
                 URL url = new URL("http://www.google.com");
 
                 // Create the request to OpenWeatherMap, and open the connection
