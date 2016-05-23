@@ -28,7 +28,6 @@ import java.util.List;
  */
 public class ForecastFragment extends Fragment {
 
-    final String LOG_TAG = "ForecastFragment";
     final Logger log = new Logger("ForecastFragment");
 
     public ForecastFragment() {
@@ -68,66 +67,59 @@ public class ForecastFragment extends Fragment {
     }
 
     public void fetchWeatherData() {
-        new FetchWeatherAsync().execute();
+        log.v("Calling FetchWeatherAsync...");
+        new FetchWeatherAsync().execute("As Samawah", "json", "metric", "7");
     }
 
-    private class FetchWeatherAsync extends AsyncTask<Void, Void, Void> {
+    private class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
+
+        private String cityName;
+        private String dataMode;
+        private String dataUnits;
+        private String daysCount;
 
         @Override
-        protected Void doInBackground(Void... params) {
-            getWeatherData();
+        protected Void doInBackground(String... params) {
+
+            log.i(params.length + "x object(s) passed to FetchWeatherAsync worker.");
+
+            cityName = params[0];
+            dataMode = params[1];
+            dataUnits = params[2];
+            daysCount = params[3];
+
+            log.v("Data passed to internal variables successfully!");
+
+            fetchWeatherJsonData();
             return null;
         }
 
-        public String getWeatherData() {
+        public String fetchWeatherJsonData() {
 
             HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
 
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
 
             try {
-                //http://api.openweathermap.org/data/2.5/forecast/daily?q=as samawah&mode=json&units=metric&cnt=7&appid=c298ffc0ae3c0785df75268904871c9b
-                Uri.Builder uriBuidler = new Uri.Builder();
-                uriBuidler.scheme("http");
-                uriBuidler.authority("api.openweathermap.org");
-                uriBuidler.appendPath("data").appendPath("2.5").appendPath("forecast").appendPath("daily");
+                String weatherFetchingUrl = buildWeatherFetchingUrl();
 
+                URL url = new URL(weatherFetchingUrl);
 
-                URL url = new URL("http://www.google.com");
+                log.v("URL: \"" + weatherFetchingUrl + "\"");
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
-                log.v("URL: \"" + urlConnection.getURL().toString() + "\"");
                 urlConnection.connect();
+
                 log.v("Connection opened..");
 
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuilder jsonStrBuffer = new StringBuilder();
-                if (inputStream == null) {
-                    // Nothing to do
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
+                //read url stream into String
+                forecastJsonStr = getForecastJsonStringFromUrlConnection(urlConnection);
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    jsonStrBuffer.append(line).append("\n");
-                }
-
-                if (jsonStrBuffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    forecastJsonStr = null;
-                }
-                forecastJsonStr = jsonStrBuffer.toString();
             } catch (IOException e) {
-                Log.e("forecast_fragment", "Error ", e);
+                log.e("Error :" + e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
                 // to parse it.
                 forecastJsonStr = null;
@@ -135,16 +127,60 @@ public class ForecastFragment extends Fragment {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
                 }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
-                    }
-                }
             }
 
             return forecastJsonStr;
+        }
+
+        private String getForecastJsonStringFromUrlConnection
+                (HttpURLConnection urlConnection) {
+
+            StringBuilder jsonStrBuffer = new StringBuilder();
+            BufferedReader buffReader = null;
+
+            try {
+                InputStream inputStream = urlConnection.getInputStream();
+                if (inputStream == null) return null;
+
+                buffReader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = buffReader.readLine()) != null) {
+                    jsonStrBuffer.append(line).append("\n");
+                }
+            } catch (IOException e) {
+                log.e(e.getMessage());
+
+                //try closing non-null buffReader
+                if (buffReader != null)
+                    try {
+                        buffReader.close();
+                    } catch (IOException e1) {
+                        log.e("Error closing buffered reader: " + e1.getMessage());
+                    }
+            }
+
+            return jsonStrBuffer.toString();
+        }
+
+        private String buildWeatherFetchingUrl() {
+            Uri.Builder uriBuilder = new Uri.Builder();
+            uriBuilder.scheme("http");
+            uriBuilder.authority("api.openweathermap.org");
+
+            uriBuilder
+                    .appendPath("data")
+                    .appendPath("2.5")
+                    .appendPath("forecast")
+                    .appendPath("daily");
+            uriBuilder
+                    .appendQueryParameter("q", cityName)
+                    .appendQueryParameter("mode", dataMode)
+                    .appendQueryParameter("units", dataUnits)
+                    .appendQueryParameter("cnt", daysCount)
+                    .appendQueryParameter("appid", getString(R.string.owm_appid));
+
+            return uriBuilder.build().toString();
         }
     }
 
