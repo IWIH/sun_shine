@@ -2,6 +2,7 @@ package com.wordpress.iwih.sunshine;
 
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -63,7 +64,9 @@ public class ForecastFragment extends Fragment {
         forecastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "Item Clicked! "+ ((TextView)view).getText(), Toast.LENGTH_SHORT).show();
+                Intent detailActivityIntent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, ((TextView) view).getText());
+                startActivity(detailActivityIntent);
             }
         });
 

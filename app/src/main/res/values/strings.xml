@@ -3,4 +3,6 @@
     <string name="refresh">Refresh</string>
     <string name="owm_appid" translatable="false">c298ffc0ae3c0785df75268904871c9b</string>
     <string name="settings">Settings</string>
+    <string name="title_activity_detail">DetailActivity</string>
+    <string name="action_settings">Settings</string>
 </resources>
