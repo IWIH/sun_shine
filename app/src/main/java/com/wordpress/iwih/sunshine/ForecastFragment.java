@@ -53,8 +53,7 @@ public class ForecastFragment extends Fragment {
         forecastArrayAdapter = new ArrayAdapter<>(
                 getActivity(),
                 R.layout.forecast_list_item_fragment,
-                R.id.forecast_text_view,
-                Arrays.asList(new String[]{""}));
+                R.id.forecast_text_view);
 
         ListView forecastListView = (ListView) inflate.findViewById(R.id.forecast_list_view);
         forecastListView.setAdapter(forecastArrayAdapter);
@@ -78,14 +77,18 @@ public class ForecastFragment extends Fragment {
         private String daysCount;
 
         @Override
-        protected Void doInBackground(String... params) {
-
-            log.v("Checking network availability");
+        protected void onPreExecute() {
 
             if (!NetworkUtilities.isNetworkAvailable(getActivity(), true)) {
                 log.v("No network!");
                 cancel(false);
             }
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            log.v("Checking network availability");
 
             log.i(params.length + "x object(s) passed to FetchWeatherAsync worker.");
 
@@ -242,7 +245,7 @@ public class ForecastFragment extends Fragment {
                     DateFormat dateFormat = new SimpleDateFormat("EEEE d/M");
                     String dayForecastRow = (new StringBuilder())
                             .append(dateFormat.format(weatherDate))
-                            .append(" - ")
+                            .append(" \n")
                             .append("Day: ")
                             .append(dayTemp)
                             .append(", ")

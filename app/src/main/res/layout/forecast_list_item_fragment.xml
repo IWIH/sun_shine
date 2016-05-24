@@ -4,6 +4,7 @@
     style="@style/Base.DialogWindowTitle.AppCompat"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:lines="2"
     android:paddingBottom="20dp"
     android:paddingTop="20dp"
     tools:context=".ForecastListItemFragment" />

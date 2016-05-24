@@ -1,24 +1,22 @@
 package com.wordpress.iwih.sunshine;
 
 import android.app.FragmentManager;
-import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    final private Logger logger = new Logger("MainActivity");
+    final private Logger log = new Logger("MainActivity");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        logger.v("Activity Inflated");
+        log.v("Activity Inflated");
     }
 
     @Override
@@ -32,11 +30,6 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
         switch (itemId){
             case R.id.menu_main_activity_settings:
-                Toast.makeText(
-                        MainActivity.this,
-                        "You called me from app menu!!",
-                        Toast.LENGTH_SHORT).show();
-                finish();
                 break;
             case R.id.menu_main_activity_refresh:
                 refreshWeatherData();
