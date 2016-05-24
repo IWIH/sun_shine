@@ -8,8 +8,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,6 +60,12 @@ public class ForecastFragment extends Fragment {
 
         ListView forecastListView = (ListView) inflate.findViewById(R.id.forecast_list_view);
         forecastListView.setAdapter(forecastArrayAdapter);
+        forecastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getActivity(), "Item Clicked! "+ ((TextView)view).getText(), Toast.LENGTH_SHORT).show();
+            }
+        });
 
         fetchWeatherData();
 
