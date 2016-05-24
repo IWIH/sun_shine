@@ -80,6 +80,13 @@ public class ForecastFragment extends Fragment {
         @Override
         protected Void doInBackground(String... params) {
 
+            log.v("Checking network availability");
+
+            if (!NetworkUtilities.isNetworkAvailable(getActivity(), true)) {
+                log.v("No network!");
+                cancel(false);
+            }
+
             log.i(params.length + "x object(s) passed to FetchWeatherAsync worker.");
 
             cityName = params[0];
