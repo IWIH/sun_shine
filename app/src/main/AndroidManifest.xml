@@ -20,12 +20,19 @@
         </activity>
         <activity
             android:name=".DetailActivity"
-            android:label="@string/title_activity_detail"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:label="@string/detail_activity_label">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.wordpress.iwih.sunshine.MainActivity" />
+                android:value=".MainActivity" />
+
+        </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_activity_label">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
     </application>
 

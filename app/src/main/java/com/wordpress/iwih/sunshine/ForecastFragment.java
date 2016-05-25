@@ -64,9 +64,7 @@ public class ForecastFragment extends Fragment {
         forecastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent detailActivityIntent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, ((TextView) view).getText());
-                startActivity(detailActivityIntent);
+                callDetailActivity((TextView) view);
             }
         });
 
@@ -74,6 +72,14 @@ public class ForecastFragment extends Fragment {
 
         return inflate;
 
+    }
+
+    private void callDetailActivity(TextView view) {
+        Intent detailActivityIntent = new Intent(getActivity(), DetailActivity.class)
+                .putExtra(Intent.EXTRA_TEXT, view.getText());
+
+        log.i("Starting DetailActivity...");
+        startActivity(detailActivityIntent);
     }
 
     public void fetchWeatherData() {

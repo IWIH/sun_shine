@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
         switch (itemId){
             case R.id.menu_main_activity_settings:
+                SettingsActivity.startSettingsActivity(this);
                 break;
             case R.id.menu_main_activity_refresh:
                 refreshWeatherData();
