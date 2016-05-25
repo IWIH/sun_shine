@@ -40,10 +40,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void refreshData(View view)  {
-        refreshWeatherData();
-    }
-
     private void refreshWeatherData() {
         FragmentManager fragManager = getFragmentManager();
         ForecastFragment forecastFragment = (ForecastFragment)

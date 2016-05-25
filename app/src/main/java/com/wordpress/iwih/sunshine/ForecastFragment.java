@@ -13,7 +13,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,10 +27,7 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -68,8 +64,6 @@ public class ForecastFragment extends Fragment {
             }
         });
 
-        fetchWeatherData();
-
         return inflate;
 
     }
@@ -82,9 +76,19 @@ public class ForecastFragment extends Fragment {
         startActivity(detailActivityIntent);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        fetchWeatherData();
+    }
+
     public void fetchWeatherData() {
         log.v("Calling FetchWeatherAsync...");
-        new FetchWeatherAsync().execute("As Samawah", "json", "metric", "7");
+        String location = SettingsActivity.getStringPreferences(
+                getActivity(),
+                getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+        new FetchWeatherAsync().execute(location, "json", "metric", "7");
     }
 
     public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
@@ -118,9 +122,6 @@ public class ForecastFragment extends Fragment {
             log.v("Data passed to internal variables successfully!");
 
             fetchWeatherJsonData();
-
-            log.v("Start parsing weather data...");
-            parseForecastJsonStr();
 
             return null;
         }
@@ -216,6 +217,25 @@ public class ForecastFragment extends Fragment {
             return uriBuilder.build().toString();
         }
 
+        @Override
+        protected void onPostExecute(Void aVoid) {
+
+            try {
+                log.v("Start parsing weather data...");
+                parseForecastJsonStr();
+            } catch (Exception e) {
+                log.e("Couldn't parse Weather JSON Data " + e.getMessage());
+            }
+
+            if (forecastJsonStr.equals("") || (forecastJsonStr == null))
+                return;
+            log.v("Start populating weather data to UI...");
+
+            setActivityTitleToCityName();
+
+            populateWeatherArrayToUI();
+        }
+
         private void parseForecastJsonStr() {
             try {
                 JSONObject mainJson = new JSONObject(forecastJsonStr);
@@ -260,7 +280,7 @@ public class ForecastFragment extends Fragment {
                     Long minTemp = getDayMinTemp(dayTempJsonObj);
                     Long dayTemp = getDayTemp(dayTempJsonObj);
 
-                    DateFormat dateFormat = new SimpleDateFormat("EEEE d/M");
+                    DateFormat dateFormat = new SimpleDateFormat(getActivity().getString(R.string.date_format_main));
                     String dayForecastRow = (new StringBuilder())
                             .append(dateFormat.format(weatherDate))
                             .append(" \n")
@@ -330,18 +350,6 @@ public class ForecastFragment extends Fragment {
             }
 
             return dayTemp;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-
-            if (forecastJsonStr.equals("") || (forecastJsonStr == null))
-                return;
-            log.v("Start populating weather data to UI...");
-
-            setActivityTitleToCityName();
-
-            populateWeatherArrayToUI();
         }
 
         private void populateWeatherArrayToUI() {

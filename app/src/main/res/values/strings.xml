@@ -9,6 +9,9 @@
     <string name="detail_activity_label">DetailActivity</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="settings_activity_label">Sun Shine Settings</string>
+
+    <string name="pref_location_key" translatable="true">location</string>
+    <string name="pref_location_default" translatable="true">as samawah</string>
+    <string name="date_format_main">EEEE d/M</string>
 </resources>
