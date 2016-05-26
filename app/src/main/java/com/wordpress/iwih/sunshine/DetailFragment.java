@@ -44,7 +44,16 @@ public class DetailFragment extends Fragment {
         }
 
         forecastDetailTextView.setText(forecastToPopulate);
+
+        sendForecastStringToParent(forecastToPopulate);
+
         log.i("detail_activity_forecast_textview got the forecastStr.");
+    }
+
+    private void sendForecastStringToParent(String forecastToPopulate) {
+        DetailActivity parentActivity = (DetailActivity) getActivity();
+        if (parentActivity != null)
+            parentActivity.setForecastString(forecastToPopulate);
     }
 
     private String getForecastFromIntent() {

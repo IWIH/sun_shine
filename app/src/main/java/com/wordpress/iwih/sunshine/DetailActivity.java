@@ -1,11 +1,12 @@
 package com.wordpress.iwih.sunshine;
 
 import android.content.Intent;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ShareActionProvider;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -23,7 +24,7 @@ public class DetailActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_detail, menu);
 
         MenuItem shareItem = menu.findItem(R.id.action_detail_share);
-        shareActionProvider = (ShareActionProvider) shareItem.getActionProvider();
+        shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
 
         return true;
     }
@@ -35,18 +36,32 @@ public class DetailActivity extends AppCompatActivity {
                 SettingsActivity.startSettingsActivity(this);
                 break;
             case R.id.action_detail_share:
-
+                updateAndStartShareActionProvider();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public void updateShareActionProvider(String shareStr) {
+    public void updateAndStartShareActionProvider() {
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareString);
+        shareIntent.setType("text/plain");
+
+        setShareActionProviderIntent(shareIntent);
+
+        startActivity(Intent.createChooser(shareIntent, "Share to"));
 
     }
 
-    private void setShareIntent(Intent intent) {
+    private void setShareActionProviderIntent(Intent shareIntent) {
         if (shareActionProvider != null)
-            shareActionProvider.setShareIntent(intent);
+            shareActionProvider.setShareIntent(shareIntent);
+    }
+
+    private String shareString;
+
+    public void setForecastString(String forecastString) {
+        this.shareString = forecastString + " #SunShineApp";
     }
 }
