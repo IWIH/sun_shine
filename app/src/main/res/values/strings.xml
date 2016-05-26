@@ -14,4 +14,12 @@
     <string name="pref_location_key" translatable="true">location</string>
     <string name="pref_location_default" translatable="true">as samawah</string>
     <string name="date_format_main">EEEE d/M</string>
+    <string name="pref_units_key">pref_units</string>
+    <string name="pref_units_default">metric</string>
+    <string name="location">Location</string>
+    <string name="units">Units</string>
+    <string name="pref_location_dialog_message">Please, enter name of city for weather forecast:</string>
+    <string name="pref_location_dialog_title">Enter Location</string>
+    <string name="pref_units_dialog_message">Please, select units preferred for weather fetching:</string>
+    <string name="pref_units_dialog_title">Select Units</string>
 </resources>

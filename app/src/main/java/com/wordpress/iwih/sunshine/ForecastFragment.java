@@ -88,7 +88,11 @@ public class ForecastFragment extends Fragment {
                 getActivity(),
                 getString(R.string.pref_location_key),
                 getString(R.string.pref_location_default));
-        new FetchWeatherAsync().execute(location, "json", "metric", "7");
+        String units = SettingsActivity.getStringPreferences(
+                getActivity(),
+                getString(R.string.pref_units_key),
+                getString(R.string.pref_units_default));
+        new FetchWeatherAsync().execute(location, "json", units, "7");
     }
 
     public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
