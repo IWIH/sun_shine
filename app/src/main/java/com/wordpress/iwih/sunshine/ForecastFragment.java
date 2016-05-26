@@ -84,10 +84,13 @@ public class ForecastFragment extends Fragment {
 
     public void fetchWeatherData() {
         log.v("Calling FetchWeatherAsync...");
+        String ironDefaultValue = getString(R.string.pref_location_default);
         String location = SettingsActivity.getStringPreferences(
                 getActivity(),
                 getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default));
+                ironDefaultValue);
+        if (location.equals(""))
+            location = ironDefaultValue;
         String units = SettingsActivity.getStringPreferences(
                 getActivity(),
                 getString(R.string.pref_units_key),
@@ -241,6 +244,12 @@ public class ForecastFragment extends Fragment {
         }
 
         private void parseForecastJsonStr() {
+
+            if (forecastJsonStr.equals(null) || forecastJsonStr == "") {
+                log.i("Empty or null forecastJsonStr. Nothing to parse..");
+                return;
+            }
+
             try {
                 JSONObject mainJson = new JSONObject(forecastJsonStr);
 

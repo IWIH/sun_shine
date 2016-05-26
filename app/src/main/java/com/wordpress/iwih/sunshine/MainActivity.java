@@ -28,12 +28,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        switch (itemId){
-            case R.id.menu_main_activity_settings:
-                SettingsActivity.startSettingsActivity(this);
-                break;
+        switch (itemId) {
             case R.id.menu_main_activity_refresh:
                 refreshWeatherData();
+                break;
+            case R.id.menu_main_activity_show_on_map:
+                String location = SettingsActivity.getStringPreferences(this, getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+                MapServices.startMapIntent(this, location);
+                break;
+            case R.id.menu_main_activity_settings:
+                SettingsActivity.startSettingsActivity(this);
                 break;
         }
 

@@ -11,8 +11,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="settings_activity_label">Sun Shine Settings</string>
 
-    <string name="pref_location_key" translatable="true">location</string>
-    <string name="pref_location_default" translatable="true">as samawah</string>
+    <string name="pref_location_key" translatable="false">location</string>
+    <string name="pref_location_default" translatable="false">as samawah</string>
     <string name="date_format_main">EEEE d/M</string>
     <string name="pref_units_key">pref_units</string>
     <string name="pref_units_default">metric</string>
@@ -22,4 +22,6 @@
     <string name="pref_location_dialog_title">Enter Location</string>
     <string name="pref_units_dialog_message">Please, select units preferred for weather fetching:</string>
     <string name="pref_units_dialog_title">Select Units</string>
+    <string name="show_on_map">Show On Map</string>
+    <string name="share">Share</string>
 </resources>
