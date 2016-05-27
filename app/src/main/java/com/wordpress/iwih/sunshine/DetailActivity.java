@@ -45,6 +45,7 @@ public class DetailActivity extends AppCompatActivity {
     public void updateAndStartShareActionProvider() {
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         shareIntent.putExtra(Intent.EXTRA_TEXT, shareString);
         shareIntent.setType("text/plain");
 

@@ -13,6 +13,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        log.i("Created..");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -51,7 +52,35 @@ public class MainActivity extends AppCompatActivity {
         forecastFragment.fetchWeatherData();
     }
 
+    @Override
+    protected void onStart() {
+        log.i("Started..");
+        super.onStart();
+    }
 
+    @Override
+    protected void onStop() {
+        log.i("Stopped..");
+        super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        log.i("Resumed..");
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        log.i("Paused..");
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        log.i("Destroyed..");
+        super.onDestroy();
+    }
 }
 
 
