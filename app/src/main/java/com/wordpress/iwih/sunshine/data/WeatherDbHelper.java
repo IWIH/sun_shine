@@ -28,8 +28,8 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                         LocationEntry.COLUMN_LOCATION_SETTING + " TEXT NOT NULL, " +
                         LocationEntry.COLUMN_CITY_NAME + " TEXT NOT NULL, " +
                         LocationEntry.COLUMN_COORD_LAT + " REAL NOT NULL, " +
-                        LocationEntry.COLUMN_COORD_LONG + " REAL NOT NULL " + "), " +
-                        "UNIQUE (" + LocationEntry.COLUMN_LOCATION_SETTING + ") ON CONFLICT REPLACE;";
+                        LocationEntry.COLUMN_COORD_LONG + " REAL NOT NULL, " +
+                        "UNIQUE (" + LocationEntry.COLUMN_LOCATION_SETTING + ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_WEATHER_TABLE =
                 "CREATE TABLE " + WeatherEntry.TABLE_NAME + " ( " +
@@ -44,10 +44,10 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                         WeatherEntry.COLUMN_PRESSURE + " REAL NOT NULL, " +
                         WeatherEntry.COLUMN_WIND_SPEED + " REAL NOT NULL, " +
                         WeatherEntry.COLUMN_WIND_AZIMUTH + " REAL NOT NULL, " +
-                        "FOREIGN KEY (" + WeatherEntry.COLUMN_LOCATION_KEY + ") REFERENCES" +
+                        "FOREIGN KEY (" + WeatherEntry.COLUMN_LOCATION_KEY + ") REFERENCES " +
                         LocationEntry.TABLE_NAME + " (" + LocationEntry._ID + "), " +
                         "UNIQUE (" + WeatherEntry.COLUMN_DATE_TEXT + ", " +
-                        WeatherEntry.COLUMN_LOCATION_KEY + ") ON CONFLICT REPLACE;";
+                        WeatherEntry.COLUMN_LOCATION_KEY + ") ON CONFLICT REPLACE);";
 
         db.execSQL(SQL_CREATE_LOCATION_TABLE);
         db.execSQL(SQL_CREATE_WEATHER_TABLE);
