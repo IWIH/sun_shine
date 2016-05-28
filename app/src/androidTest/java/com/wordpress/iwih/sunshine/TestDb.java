@@ -25,45 +25,56 @@ public class TestDb extends AndroidTestCase {
         db.close();
     }
 
-    public void testReadInsertDb() {
-
+    private static ContentValues getLocationValues() {
+        ContentValues locationValues = new ContentValues();
         String testLocationSetting = "98530";
         String testCityName = "As Samawah";
         double testCoordLong = 45.294399;
         double testCoordLat = 31.33198;
-
-        String testDate = "201605028";
-        int testWeatherId = 98530;
-        String testShortDesc = "rainy!";
-        double testTempMin = 23d;
-        double testTempMax = 35d;
-        double testHumidity = 80d;
-        double testPressure = 1.00d;
-        double testWindSpeed = 20.5d;
-        double testWindAzimuth = 200d;
-
-        SQLiteDatabase db = new WeatherDbHelper(mContext).getWritableDatabase();
-
-        ContentValues locationValues = new ContentValues();
         locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, testLocationSetting);
         locationValues.put(LocationEntry.COLUMN_CITY_NAME, testCityName);
         locationValues.put(LocationEntry.COLUMN_COORD_LONG, testCoordLong);
         locationValues.put(LocationEntry.COLUMN_COORD_LAT, testCoordLat);
+
+        return locationValues;
+    }
+
+    final String[] locationColumns = {
+            LocationEntry._ID,
+            LocationEntry.COLUMN_LOCATION_SETTING,
+            LocationEntry.COLUMN_CITY_NAME,
+            LocationEntry.COLUMN_COORD_LONG,
+            LocationEntry.COLUMN_COORD_LAT
+    };
+
+    String[] weatherColumns = {
+            WeatherEntry.COLUMN_LOCATION_KEY,
+            WeatherEntry.COLUMN_DATE_TEXT,
+            WeatherEntry.COLUMN_WEATHER_ID,
+            WeatherEntry.COLUMN_SHORT_DESC,
+            WeatherEntry.COLUMN_TEMPERATURE_MIN,
+            WeatherEntry.COLUMN_TEMPERATURE_MAX,
+            WeatherEntry.COLUMN_HUMIDITY,
+            WeatherEntry.COLUMN_PRESSURE,
+            WeatherEntry.COLUMN_WIND_SPEED,
+            WeatherEntry.COLUMN_WIND_AZIMUTH
+    };
+
+    public void testReadInsertDb() {
+
+
+                SQLiteDatabase db = new WeatherDbHelper(mContext).getWritableDatabase();
+
+        ContentValues locationValues = getLocationValues();
 
         long locationRowId = db.insert(LocationEntry.TABLE_NAME, null, locationValues);
 
         assertTrue(locationRowId != -1);
         log.v("Inserted location row id = " + locationRowId);
 
-        String[] locationColumns = {
-                LocationEntry._ID,
-                LocationEntry.COLUMN_LOCATION_SETTING,
-                LocationEntry.COLUMN_CITY_NAME,
-                LocationEntry.COLUMN_COORD_LONG,
-                LocationEntry.COLUMN_COORD_LAT
-        };
 
-        Cursor locationCursor = db.query(LocationEntry.TABLE_NAME,
+        Cursor locationCursor = db.query(
+                LocationEntry.TABLE_NAME,
                 locationColumns,
                 null,
                 null,
@@ -86,44 +97,22 @@ public class TestDb extends AndroidTestCase {
 
             locationCursor.close();
 
-            assertEquals(locationSetting, testLocationSetting);
-            assertEquals(cityName, testCityName);
-            assertEquals(coordLong, testCoordLong);
-            assertEquals(coordLat, testCoordLat);
+            assertEquals(locationSetting, locationValues.getAsString(LocationEntry.COLUMN_LOCATION_SETTING));
+            assertEquals(cityName, locationValues.getAsString(LocationEntry.COLUMN_CITY_NAME));
+            assertEquals(coordLong, locationValues.getAsDouble(LocationEntry.COLUMN_COORD_LONG));
+            assertEquals(coordLat, locationValues.getAsDouble(LocationEntry.COLUMN_COORD_LAT));
         } else {
             fail("No values retrieved from the 'location' table!");
         }
 
         //now we test 'weather' table
-        ContentValues weatherValues = new ContentValues();
-        weatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, locationRowId);
-        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, testDate);
-        weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, testWeatherId);
-        weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, testShortDesc);
-        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, testTempMax);
-        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MIN, testTempMin);
-        weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, testHumidity);
-        weatherValues.put(WeatherEntry.COLUMN_PRESSURE, testPressure);
-        weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, testWindSpeed);
-        weatherValues.put(WeatherEntry.COLUMN_WIND_AZIMUTH, testWindAzimuth);
+        ContentValues weatherValues = getWeatherValues(locationRowId);
 
         long weatherRowId = db.insert(WeatherEntry.TABLE_NAME, null, weatherValues);
 
         assertTrue(weatherRowId != -1);
         log.v("Inserted weather row id = " + weatherRowId);
 
-        String[] weatherColumns = {
-                WeatherEntry.COLUMN_LOCATION_KEY,
-                WeatherEntry.COLUMN_DATE_TEXT,
-                WeatherEntry.COLUMN_WEATHER_ID,
-                WeatherEntry.COLUMN_SHORT_DESC,
-                WeatherEntry.COLUMN_TEMPERATURE_MIN,
-                WeatherEntry.COLUMN_TEMPERATURE_MAX,
-                WeatherEntry.COLUMN_HUMIDITY,
-                WeatherEntry.COLUMN_PRESSURE,
-                WeatherEntry.COLUMN_WIND_SPEED,
-                WeatherEntry.COLUMN_WIND_AZIMUTH
-        };
 
         Cursor weatherCursor = db.query(WeatherEntry.TABLE_NAME,
                 weatherColumns,
@@ -134,7 +123,6 @@ public class TestDb extends AndroidTestCase {
                 null);
 
         if (weatherCursor.moveToFirst()) {
-
             int dateIndex = weatherCursor.getColumnIndex(WeatherEntry.COLUMN_DATE_TEXT);
             String date = weatherCursor.getString(dateIndex);
 
@@ -178,5 +166,34 @@ public class TestDb extends AndroidTestCase {
         }
 
 
+    }
+
+
+
+    private static ContentValues getWeatherValues(long locationRowId) {
+
+        String testDate = "201605028";
+        int testWeatherId = 98530;
+        String testShortDesc = "rainy!";
+        double testTempMin = 23d;
+        double testTempMax = 35d;
+        double testHumidity = 80d;
+        double testPressure = 1.00d;
+        double testWindSpeed = 20.5d;
+        double testWindAzimuth = 200d;
+
+        ContentValues weatherValues = new ContentValues();
+        weatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, locationRowId);
+        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, testDate);
+        weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, testWeatherId);
+        weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, testShortDesc);
+        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, testTempMax);
+        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MIN, testTempMin);
+        weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, testHumidity);
+        weatherValues.put(WeatherEntry.COLUMN_PRESSURE, testPressure);
+        weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, testWindSpeed);
+        weatherValues.put(WeatherEntry.COLUMN_WIND_AZIMUTH, testWindAzimuth);
+
+        return weatherValues;
     }
 }
