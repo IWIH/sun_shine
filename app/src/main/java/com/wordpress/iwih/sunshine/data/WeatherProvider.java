@@ -1,10 +1,12 @@
 package com.wordpress.iwih.sunshine.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
 import com.wordpress.iwih.sunshine.data.WeatherContract.WeatherEntry;
@@ -15,6 +17,7 @@ import android.support.annotation.Nullable;
 /**
  * Created by iwih on 29/05/2016.
  */
+
 public class WeatherProvider extends ContentProvider {
 
     public static final int WEATHER = 100;
@@ -41,6 +44,25 @@ public class WeatherProvider extends ContentProvider {
     }
 
     private SQLiteOpenHelper mOpenHelper;
+    private static final SQLiteQueryBuilder sWeatherByLocationSettingQueryBuilder = new SQLiteQueryBuilder();
+
+    static {
+        String weatherTableName = WeatherEntry.TABLE_NAME;
+        String locationTableName = LocationEntry.TABLE_NAME;
+
+        sWeatherByLocationSettingQueryBuilder
+                .setTables(weatherTableName + " INNER JOIN " + locationTableName + "ON "
+                        + weatherTableName + "." + WeatherEntry.COLUMN_LOCATION_KEY + " = " +
+                        locationTableName + "." + LocationEntry._ID);
+    }
+
+    private static final String sLocationSettingSelection =
+            LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_LOCATION_SETTING + " = ? ";
+
+    private static final String sLocationSettingWithStartDateSelection =
+            LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_LOCATION_SETTING + " = ? AND" +
+                    WeatherEntry.TABLE_NAME + "." + WeatherEntry.COLUMN_DATE_TEXT + " >= ? ";
+
     @Override
     public boolean onCreate() {
         mOpenHelper = new WeatherDbHelper(getContext());
@@ -50,13 +72,118 @@ public class WeatherProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+
+        int uriMatch = sUriMatcher.match(uri);
+        Cursor retCursor;
+
+        switch (uriMatch) {
+            //for WeatherEntry
+            case WEATHER: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        WeatherEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case WEATHER_WITH_LOCATION: {
+                retCursor = getWeatherByLocationSetting(uri, projection, sortOrder);
+                break;
+            }
+            case WEATHER_WITH_LOCATION_AND_DATE: {
+                retCursor = null;
+                break;
+            }
+            //for LocationEntry
+            case LOCATION: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        LocationEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+            case LOCATION_ID: {
+                long _id = ContentUris.parseId(uri);
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        LocationEntry.TABLE_NAME,
+                        projection,
+                        LocationEntry._ID + " = '" + _id + "'",
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+
+            //Unknown type
+            default:
+                throw new UnsupportedOperationException("Unknown uri:" + uri);
+        }
+
+        retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        return retCursor;
+    }
+
+    private Cursor getWeatherByLocationSetting(Uri uri, String[] projection, String sortOrder) {
+
+        String weatherLocation = WeatherEntry.getLocationSetttingFromUri(uri);
+        String startDate = WeatherEntry.getStartDateFromUri(uri);
+
+        String[] selectionArgs;
+        String selection;
+        if (startDate == null) {
+            selection = sLocationSettingSelection;
+            selectionArgs = new String[]{weatherLocation};
+        } else {
+            selection = sLocationSettingWithStartDateSelection;
+            selectionArgs = new String[]{weatherLocation, startDate};
+        }
+
+        return sWeatherByLocationSettingQueryBuilder.query(
+                mOpenHelper.getReadableDatabase(),
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder);
     }
 
     @Nullable
     @Override
     public String getType(Uri uri) {
-        return null;
+        int uriMatch = sUriMatcher.match(uri);
+
+        switch (uriMatch) {
+            //for WeatherEntry
+            case WEATHER:
+                return WeatherEntry.CONTENT_TYPE;
+
+            case WEATHER_WITH_LOCATION:
+                return WeatherEntry.CONTENT_TYPE;
+
+            case WEATHER_WITH_LOCATION_AND_DATE:
+                return WeatherEntry.CONTENT_ITEM_TYPE;
+
+            //for LocationEntry
+            case LOCATION:
+                return LocationEntry.CONTENT_TYPE;
+            case LOCATION_ID:
+                return LocationEntry.CONTENT_ITEM_TYPE;
+
+            //Unknown type
+            default:
+                throw new UnsupportedOperationException("Unknown uri:" + uri);
+        }
     }
 
     @Nullable
