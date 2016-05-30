@@ -40,6 +40,14 @@ public class WeatherContract {
         public static final Uri buildLocationUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+        public static final String[] PROJECTION = {
+                _ID,
+                COLUMN_LOCATION_SETTING,
+                COLUMN_CITY_NAME,
+                COLUMN_COORD_LONG,
+                COLUMN_COORD_LAT
+        };
     }
 
     public static final class WeatherEntry implements BaseColumns {
@@ -107,5 +115,19 @@ public class WeatherContract {
         public static String getStartDateFromUri(Uri uri) {
             return uri.getQueryParameter(COLUMN_DATE_TEXT);
         }
+
+        public static final String[] PROJECTION = {
+                _ID,
+                COLUMN_LOCATION_KEY,
+                COLUMN_DATE_TEXT,
+                COLUMN_WEATHER_ID,
+                COLUMN_SHORT_DESC,
+                COLUMN_TEMPERATURE_MIN,
+                COLUMN_TEMPERATURE_MAX,
+                COLUMN_HUMIDITY,
+                COLUMN_PRESSURE,
+                COLUMN_WIND_SPEED,
+                COLUMN_WIND_AZIMUTH
+        };
     }
 }

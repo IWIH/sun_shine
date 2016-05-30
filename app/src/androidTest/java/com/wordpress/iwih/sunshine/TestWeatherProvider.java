@@ -19,18 +19,21 @@ public class TestWeatherProvider extends AndroidTestCase {
 
     private final Logger log = new Logger(this.getClass().getSimpleName());
 
+    private static final String CITY_NAME_TEST = "As Samawah";
+    private static final String LOCATION_SETTING_TEST = "98530";
+    private static final String START_DATE_TEST = "201605028";
+
     public void testDeleteDb() throws Throwable {
         mContext.deleteDatabase(WeatherDbHelper.WEATHER_DB_NAME);
     }
 
     private static ContentValues getLocationValues() {
         ContentValues locationValues = new ContentValues();
-        String testLocationSetting = "98530";
-        String testCityName = "As Samawah";
+
         float testCoordLong = 45.29f;
         float testCoordLat = 31.33f;
-        locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, testLocationSetting);
-        locationValues.put(LocationEntry.COLUMN_CITY_NAME, testCityName);
+        locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, LOCATION_SETTING_TEST);
+        locationValues.put(LocationEntry.COLUMN_CITY_NAME, CITY_NAME_TEST);
         locationValues.put(LocationEntry.COLUMN_COORD_LONG, testCoordLong);
         locationValues.put(LocationEntry.COLUMN_COORD_LAT, testCoordLat);
 
@@ -39,7 +42,6 @@ public class TestWeatherProvider extends AndroidTestCase {
 
     private static ContentValues getWeatherValues(long locationRowId) {
 
-        String testDate = "201605028";
         int testWeatherId = 98530;
         String testShortDesc = "rainy!";
         double testTempMin = 23.01;
@@ -51,7 +53,7 @@ public class TestWeatherProvider extends AndroidTestCase {
 
         ContentValues weatherValues = new ContentValues();
         weatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, locationRowId);
-        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, testDate);
+        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, START_DATE_TEST);
         weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, testWeatherId);
         weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, testShortDesc);
         weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, testTempMax);
@@ -63,27 +65,6 @@ public class TestWeatherProvider extends AndroidTestCase {
 
         return weatherValues;
     }
-
-    final String[] locationColumns = {
-            LocationEntry._ID,
-            LocationEntry.COLUMN_LOCATION_SETTING,
-            LocationEntry.COLUMN_CITY_NAME,
-            LocationEntry.COLUMN_COORD_LONG,
-            LocationEntry.COLUMN_COORD_LAT
-    };
-
-    String[] weatherColumns = {
-            WeatherEntry.COLUMN_LOCATION_KEY,
-            WeatherEntry.COLUMN_DATE_TEXT,
-            WeatherEntry.COLUMN_WEATHER_ID,
-            WeatherEntry.COLUMN_SHORT_DESC,
-            WeatherEntry.COLUMN_TEMPERATURE_MIN,
-            WeatherEntry.COLUMN_TEMPERATURE_MAX,
-            WeatherEntry.COLUMN_HUMIDITY,
-            WeatherEntry.COLUMN_PRESSURE,
-            WeatherEntry.COLUMN_WIND_SPEED,
-            WeatherEntry.COLUMN_WIND_AZIMUTH
-    };
 
     public void testReadInsertDb() {
         SQLiteDatabase db = new WeatherDbHelper(mContext).getWritableDatabase();
@@ -100,9 +81,12 @@ public class TestWeatherProvider extends AndroidTestCase {
                 .query(LocationEntry.buildLocationUri(locationRowId), null, null, null, null);
 
         assertTrue(locationCursor != null);
-        locationCursor.moveToFirst();
-
-        assertValuesToCursor(locationValues, locationCursor);
+        if (locationCursor.moveToFirst()) {
+            assertValuesFromCursor(locationValues, locationCursor);
+            locationCursor.close();
+        } else {
+            fail("No data retrieved from 'location' table!");
+        }
 
         //now we test 'weather' table
         ContentValues weatherValues = getWeatherValues(locationRowId);
@@ -118,16 +102,38 @@ public class TestWeatherProvider extends AndroidTestCase {
         assertTrue(weatherCursor != null);
 
         if (weatherCursor.moveToFirst()) {
-
-            assertValuesToCursor(weatherValues, weatherCursor);
+            assertValuesFromCursor(weatherValues, weatherCursor);
+            weatherCursor.close();
         } else {
-            fail("No values retrieved from 'weather' table!");
+            fail("No data retrieved from 'weather' table!");
         }
 
+        weatherCursor = mContext.getContentResolver()
+                .query(WeatherEntry.buildWeatherLocation(CITY_NAME_TEST), null, null, null, null);
 
+        assertTrue(weatherCursor != null);
+
+        if (weatherCursor.moveToFirst()) {
+            assertValuesFromCursor(weatherValues, weatherCursor);
+            weatherCursor.close();
+        } else {
+            fail("No data retrieved from 'weather' table!");
+        }
+
+        weatherCursor = mContext.getContentResolver()
+                .query(WeatherEntry.buildWeatherLocationWithDate(CITY_NAME_TEST, START_DATE_TEST), null, null, null, null);
+
+        assertTrue(weatherCursor != null);
+
+        if (weatherCursor.moveToFirst()) {
+            assertValuesFromCursor(weatherValues, weatherCursor);
+            weatherCursor.close();
+        } else {
+            fail("No data retrieved from 'weather' table!");
+        }
     }
 
-    private void assertValuesToCursor(ContentValues expectedValues, Cursor dataCursor) {
+    private void assertValuesFromCursor(ContentValues expectedValues, Cursor dataCursor) {
         Set<Map.Entry<String, Object>> expectedValuesSet = expectedValues.valueSet();
         for (Map.Entry<String, Object> entry : expectedValuesSet) {
             String columnName = entry.getKey();
@@ -137,12 +143,6 @@ public class TestWeatherProvider extends AndroidTestCase {
             log.v("columnIndex = " + columnIndex + "; columnName = " + columnName + ";");
             assertFalse(-1 == columnIndex);
             String sqlDbValue = dataCursor.getString(columnIndex);
-
-            /*Class objectClass = expectedValue.getClass();
-            if (objectClass == float.class || objectClass == double.class){
-                expectedValue = Math.round((double)expectedValue);
-                sqlDbValue = String.valueOf(Math.round(Double.parseDouble(sqlDbValue)));
-            }*/
 
             assertEquals(expectedValue.toString(), sqlDbValue);
         }
