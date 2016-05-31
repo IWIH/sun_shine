@@ -1,10 +1,13 @@
 package com.wordpress.iwih.sunshine;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.test.AndroidTestCase;
 
+import com.wordpress.iwih.sunshine.data.WeatherContract;
 import com.wordpress.iwih.sunshine.data.WeatherContract.LocationEntry;
 import com.wordpress.iwih.sunshine.data.WeatherContract.WeatherEntry;
 import com.wordpress.iwih.sunshine.data.WeatherDbHelper;
@@ -23,7 +26,7 @@ public class TestWeatherProvider extends AndroidTestCase {
     private static final String LOCATION_SETTING_TEST = "98530";
     private static final String START_DATE_TEST = "201605028";
 
-    public void testDeleteDb() throws Throwable {
+    public void testReCreateDatabase() {
         mContext.deleteDatabase(WeatherDbHelper.WEATHER_DB_NAME);
     }
 
@@ -66,71 +69,69 @@ public class TestWeatherProvider extends AndroidTestCase {
         return weatherValues;
     }
 
-    public void testReadInsertDb() {
-        SQLiteDatabase db = new WeatherDbHelper(mContext).getWritableDatabase();
 
-        //at first, we test 'location' table
-        ContentValues locationValues = getLocationValues();
+    public void testInsertRead_Weather_Content_Uri() {
+        ContentValues valuesWeather = getWeatherValues(1);
 
-        long locationRowId = db.insert(LocationEntry.TABLE_NAME, null, locationValues);
+        Uri uriInsertedRow = weatherInsertData(valuesWeather);
+        assertTrue(uriInsertedRow != null);
 
-        assertTrue(locationRowId != -1);
-        log.v("Inserted location row id = " + locationRowId);
+        Cursor cursorWeather = getCursorWithoutParameters(uriInsertedRow);
 
-        Cursor locationCursor = mContext.getContentResolver()
-                .query(LocationEntry.buildLocationUri(locationRowId), null, null, null, null);
+        if (cursorWeather.moveToNext())
+            assertValuesFromCursor(valuesWeather, cursorWeather);
+        else
+            fail("Couldn't insert data and read it again properly, uri: " + uriInsertedRow);
 
-        assertTrue(locationCursor != null);
-        if (locationCursor.moveToFirst()) {
-            assertValuesFromCursor(locationValues, locationCursor);
-            locationCursor.close();
-        } else {
-            fail("No data retrieved from 'location' table!");
-        }
+        cursorWeather.close();
+    }
 
-        //now we test 'weather' table
-        ContentValues weatherValues = getWeatherValues(locationRowId);
+    public void testInsertRead_Weather_withLocation_Uri() {
+        ContentValues valuesLocation = getLocationValues();
+        Uri uriInsertedLocationRow= locationInsertData(valuesLocation);
+        long locationRowId = ContentUris.parseId(uriInsertedLocationRow);
 
-        long weatherRowId = db.insert(WeatherEntry.TABLE_NAME, null, weatherValues);
+        ContentValues valuesWeather = getWeatherValues(locationRowId);
+        Uri uriInsertedWeatherRow = weatherInsertData(valuesWeather);
+        assertTrue(uriInsertedWeatherRow != null);
 
-        assertTrue(weatherRowId != -1);
-        log.v("Inserted weather row id = " + weatherRowId);
+        Cursor cursorWeather = getCursorWithoutParameters(uriInsertedWeatherRow);
 
-        Cursor weatherCursor = mContext.getContentResolver()
-                .query(WeatherEntry.CONTENT_URI, null, null, null, null);
+        if (cursorWeather.moveToNext())
+            assertValuesFromCursor(valuesWeather, cursorWeather);
+        else
+            fail("Couldn't insert data and read it again properly, uri: " + uriInsertedWeatherRow);
 
-        assertTrue(weatherCursor != null);
+        cursorWeather.close();
+    }
 
-        if (weatherCursor.moveToFirst()) {
-            assertValuesFromCursor(weatherValues, weatherCursor);
-            weatherCursor.close();
-        } else {
-            fail("No data retrieved from 'weather' table!");
-        }
+    public void testInsertReadLocationViaUri() {
+        ContentValues valuesLocation = getLocationValues();
 
-        weatherCursor = mContext.getContentResolver()
-                .query(WeatherEntry.buildWeatherLocation(CITY_NAME_TEST), null, null, null, null);
+        Uri uriInsertedRow = locationInsertData(valuesLocation);
+        assertTrue(uriInsertedRow != null);
 
-        assertTrue(weatherCursor != null);
+        Cursor cursorLocation = getCursorWithoutParameters(uriInsertedRow);
 
-        if (weatherCursor.moveToFirst()) {
-            assertValuesFromCursor(weatherValues, weatherCursor);
-            weatherCursor.close();
-        } else {
-            fail("No data retrieved from 'weather' table!");
-        }
+        if (cursorLocation.moveToNext())
+            assertValuesFromCursor(valuesLocation, cursorLocation);
+        else
+            fail("Couldn't insert data and read it again properly, uri: " + uriInsertedRow);
 
-        weatherCursor = mContext.getContentResolver()
-                .query(WeatherEntry.buildWeatherLocationWithDate(CITY_NAME_TEST, START_DATE_TEST), null, null, null, null);
+        cursorLocation.close();
+    }
 
-        assertTrue(weatherCursor != null);
+    private Uri locationInsertData(ContentValues valuesLocation) {
+        return mContext.getContentResolver().insert(LocationEntry.CONTENT_URI, valuesLocation);
+    }
 
-        if (weatherCursor.moveToFirst()) {
-            assertValuesFromCursor(weatherValues, weatherCursor);
-            weatherCursor.close();
-        } else {
-            fail("No data retrieved from 'weather' table!");
-        }
+    private Cursor getCursorWithoutParameters(Uri uriInsertedRow) {
+        return mContext.getContentResolver()
+                .query(uriInsertedRow, null, null, null, null);
+    }
+
+    private Uri weatherInsertData(ContentValues valuesWeather) {
+        return mContext.getContentResolver().insert(WeatherEntry.CONTENT_URI, valuesWeather);
     }
 
     private void assertValuesFromCursor(ContentValues expectedValues, Cursor dataCursor) {

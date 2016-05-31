@@ -5,6 +5,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
@@ -22,8 +23,9 @@ import android.util.Log;
 public class WeatherProvider extends ContentProvider {
 
     public static final int WEATHER = 100;
-    public static final int WEATHER_WITH_LOCATION = 101;
-    public static final int WEATHER_WITH_LOCATION_AND_DATE = 102;
+    public static final int WEATHER_ID = 101;
+    public static final int WEATHER_WITH_LOCATION = 102;
+    public static final int WEATHER_WITH_LOCATION_AND_DATE = 103;
     public static final int LOCATION = 300;
     public static final int LOCATION_ID = 301;
 
@@ -36,6 +38,7 @@ public class WeatherProvider extends ContentProvider {
         final String locationPath = LocationEntry.PATH_CONTENT;
 
         sUriMatcher.addURI(contentAuthority, weatherPath, WEATHER);
+        sUriMatcher.addURI(contentAuthority, weatherPath + "/#", WEATHER_ID);
         sUriMatcher.addURI(contentAuthority, weatherPath + "/*", WEATHER_WITH_LOCATION);
         sUriMatcher.addURI(contentAuthority, weatherPath + "/*/*", WEATHER_WITH_LOCATION_AND_DATE);
 
@@ -57,7 +60,7 @@ public class WeatherProvider extends ContentProvider {
                 weatherTableName + "." + WeatherEntry.COLUMN_LOCATION_KEY + " = " +
                 locationTableName + "." + LocationEntry._ID;
 
-        Log.i(LOG_TAG,"Inner join query: "+ innerJoinQuery);
+        Log.i(LOG_TAG, "Inner join query: " + innerJoinQuery);
         sWeatherByLocationSettingQueryBuilder.setTables(innerJoinQuery);
     }
 
@@ -99,6 +102,20 @@ public class WeatherProvider extends ContentProvider {
                 );
                 break;
             }
+
+            case WEATHER_ID: {
+                long _id = ContentUris.parseId(uri);
+                retCursor = mOpenHelper.getReadableDatabase()
+                        .query(WeatherEntry.TABLE_NAME,
+                                projection,
+                                WeatherEntry._ID + " = '" + _id + "'",
+                                selectionArgs,
+                                null,
+                                null,
+                                sortOrder);
+                break;
+            }
+
             case WEATHER_WITH_LOCATION: {
                 retCursor = getWeatherByLocationSettingAndStartDate(uri, projection, sortOrder);
                 break;
@@ -146,7 +163,12 @@ public class WeatherProvider extends ContentProvider {
     private Cursor getWeatherByLocationSettingAndStartDate(Uri uri, String[] projection, String sortOrder) {
 
         String weatherLocation = WeatherEntry.getLocationSetttingFromUri(uri);
-        String startDate = WeatherEntry.getDateFromUri(uri);
+        String startDate = null;
+        try {
+            startDate = WeatherEntry.getDateFromUri(uri);
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(LOG_TAG, "No date data in the given uri -> continue query for location only.");
+        }
 
         String[] selectionArgs;
         String selection;
@@ -224,7 +246,32 @@ public class WeatherProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        return null;
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int uriMatch = sUriMatcher.match(uri);
+
+        Uri uriInsertedRow = null;
+        long idInsertedRow;
+        switch (uriMatch) {
+            case WEATHER:
+                idInsertedRow = db.insert(WeatherEntry.TABLE_NAME, null, values);
+                if (idInsertedRow != -1)
+                    uriInsertedRow = WeatherEntry.buildWeatherUri(idInsertedRow);
+                else
+                    throw new android.database.SQLException("Unable to inset row to database, invoker uri: " + uri);
+                break;
+
+            case LOCATION:
+                idInsertedRow = db.insert(LocationEntry.TABLE_NAME, null, values);
+                if (idInsertedRow > 0)
+                    uriInsertedRow = LocationEntry.buildLocationUri(idInsertedRow);
+                else
+                    throw new android.database.SQLException("Unable to inset row to database, invoker uri: " + uri);
+                break;
+        }
+
+        getContext().getContentResolver().notifyChange(uri, null);
+        db.close();
+        return uriInsertedRow;
     }
 
     @Override
