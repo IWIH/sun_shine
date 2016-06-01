@@ -31,51 +31,17 @@ public class TestWeatherProvider extends AndroidTestCase {
     }
 
     /**
-     * Provides dump data for testing purpose.
+     * Tests deleting all records in weather table
      */
-    private static ContentValues getLocationValues() {
-        ContentValues locationValues = new ContentValues();
-
-        float testCoordLong = 45.29f;
-        float testCoordLat = 31.33f;
-        locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, LOCATION_SETTING_TEST);
-        locationValues.put(LocationEntry.COLUMN_CITY_NAME, CITY_NAME_TEST);
-        locationValues.put(LocationEntry.COLUMN_COORD_LONG, testCoordLong);
-        locationValues.put(LocationEntry.COLUMN_COORD_LAT, testCoordLat);
-
-        return locationValues;
+    public void testDeleteAllWeatherRecord() {
+        mContext.getContentResolver().delete(WeatherEntry.CONTENT_URI, null, null);
     }
 
     /**
-     * Provides dump data for testing purpose.
-     *
-     * @param locationRowId Prefered location id to be included in the data.
-     * @return
+     * Tests deleting all records in location table
      */
-    private static ContentValues getWeatherValues(long locationRowId) {
-
-        int testWeatherId = 98530;
-        String testShortDesc = "rainy!";
-        double testTempMin = 23.01;
-        double testTempMax = 35.01;
-        double testHumidity = 80.01;
-        double testPressure = 1.001;
-        double testWindSpeed = 20.5;
-        double testWindAzimuth = 200.01;
-
-        ContentValues weatherValues = new ContentValues();
-        weatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, locationRowId);
-        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, START_DATE_TEST);
-        weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, testWeatherId);
-        weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, testShortDesc);
-        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, testTempMax);
-        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MIN, testTempMin);
-        weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, testHumidity);
-        weatherValues.put(WeatherEntry.COLUMN_PRESSURE, testPressure);
-        weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, testWindSpeed);
-        weatherValues.put(WeatherEntry.COLUMN_WIND_AZIMUTH, testWindAzimuth);
-
-        return weatherValues;
+    public void testDeleteAllLocationRecord() {
+        mContext.getContentResolver().delete(WeatherEntry.CONTENT_URI, null, null);
     }
 
     /**
@@ -200,6 +166,54 @@ public class TestWeatherProvider extends AndroidTestCase {
             fail("Couldn't insert data and read it again properly, uri: " + uriInsertedRow);
 
         cursorLocation.close();
+    }
+
+    /**
+     * Provides dump data for testing purpose.
+     */
+    private static ContentValues getLocationValues() {
+        ContentValues locationValues = new ContentValues();
+
+        float testCoordLong = 45.29f;
+        float testCoordLat = 31.33f;
+        locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, LOCATION_SETTING_TEST);
+        locationValues.put(LocationEntry.COLUMN_CITY_NAME, CITY_NAME_TEST);
+        locationValues.put(LocationEntry.COLUMN_COORD_LONG, testCoordLong);
+        locationValues.put(LocationEntry.COLUMN_COORD_LAT, testCoordLat);
+
+        return locationValues;
+    }
+
+    /**
+     * Provides dump data for testing purpose.
+     *
+     * @param locationRowId Prefered location id to be included in the data.
+     * @return
+     */
+    private static ContentValues getWeatherValues(long locationRowId) {
+
+        int testWeatherId = 98530;
+        String testShortDesc = "rainy!";
+        double testTempMin = 23.01;
+        double testTempMax = 35.01;
+        double testHumidity = 80.01;
+        double testPressure = 1.001;
+        double testWindSpeed = 20.5;
+        double testWindAzimuth = 200.01;
+
+        ContentValues weatherValues = new ContentValues();
+        weatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, locationRowId);
+        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, START_DATE_TEST);
+        weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, testWeatherId);
+        weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, testShortDesc);
+        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, testTempMax);
+        weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MIN, testTempMin);
+        weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, testHumidity);
+        weatherValues.put(WeatherEntry.COLUMN_PRESSURE, testPressure);
+        weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, testWindSpeed);
+        weatherValues.put(WeatherEntry.COLUMN_WIND_AZIMUTH, testWindAzimuth);
+
+        return weatherValues;
     }
 
     private Uri locationInsertData(ContentValues valuesLocation) {

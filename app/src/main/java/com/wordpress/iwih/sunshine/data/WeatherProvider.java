@@ -1,8 +1,10 @@
 package com.wordpress.iwih.sunshine.data;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -266,20 +268,75 @@ public class WeatherProvider extends ContentProvider {
                 else
                     throw new android.database.SQLException("Unable to inset row to database, invoker uri: " + uri);
                 break;
+
+            //Unknown type
+            default:
+                throw new UnsupportedOperationException("Unknown uri:" + uri);
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+        notifyChange(uri);
         db.close();
         return uriInsertedRow;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int uriMatch = sUriMatcher.match(uri);
+
+        int rowsDeleted = 0;
+        switch (uriMatch) {
+            case WEATHER:
+                rowsDeleted = db.delete(WeatherEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+
+            case LOCATION:
+                rowsDeleted = db.delete(LocationEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+
+            //Unknown type
+            default:
+                throw new UnsupportedOperationException("Unknown uri:" + uri);
+        }
+        if (selection == null || rowsDeleted != 0)
+            notifyChange(uri);
+        db.close();
+        return rowsDeleted;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int uriMatch = sUriMatcher.match(uri);
+
+        int rowsUpdated = 0;
+        switch (uriMatch) {
+            case WEATHER:
+                rowsUpdated = db.update(WeatherEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+
+            case LOCATION:
+                rowsUpdated = db.update(LocationEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+
+            //Unknown type
+            default:
+                throw new UnsupportedOperationException("Unknown uri:" + uri);
+        }
+        if (rowsUpdated != 0)
+            notifyChange(uri);
+        db.close();
+        return rowsUpdated;
+    }
+
+    private void notifyChange(Uri uri) {
+        Context context = getContext();
+
+        if (context != null) {
+            ContentResolver contentResolver = context.getContentResolver();
+
+            if (contentResolver != null)
+                contentResolver.notifyChange(uri, null);
+        }
     }
 }
