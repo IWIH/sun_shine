@@ -48,9 +48,8 @@ public class WeatherProvider extends ContentProvider {
     }
 
     private SQLiteOpenHelper mOpenHelper;
-    private static final SQLiteQueryBuilder sWeatherByLocationSettingQueryBuilder = new SQLiteQueryBuilder();
-
     private static final String LOG_TAG = "WeatherProvider";
+    private static final SQLiteQueryBuilder sWeatherByLocationSettingQueryBuilder = new SQLiteQueryBuilder();
 
     static {
         String weatherTableName = WeatherEntry.TABLE_NAME;
