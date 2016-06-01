@@ -40,7 +40,7 @@ public class WeatherProvider extends ContentProvider {
         sUriMatcher.addURI(contentAuthority, weatherPath, WEATHER);
         sUriMatcher.addURI(contentAuthority, weatherPath + "/#", WEATHER_ID);
         sUriMatcher.addURI(contentAuthority, weatherPath + "/*", WEATHER_WITH_LOCATION);
-        sUriMatcher.addURI(contentAuthority, weatherPath + "/*/*", WEATHER_WITH_LOCATION_AND_DATE);
+        sUriMatcher.addURI(contentAuthority, weatherPath + "/*/#", WEATHER_WITH_LOCATION_AND_DATE);
 
         sUriMatcher.addURI(contentAuthority, locationPath, LOCATION);
         sUriMatcher.addURI(contentAuthority, locationPath + "/#", LOCATION_ID);
@@ -67,11 +67,11 @@ public class WeatherProvider extends ContentProvider {
             LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_CITY_NAME + " = ? ";
 
     private static final String sLocationSettingWithStartDateSelection =
-            LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_CITY_NAME + " = ? AND" +
+            LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_CITY_NAME + " = ? AND " +
                     WeatherEntry.TABLE_NAME + "." + WeatherEntry.COLUMN_DATE_TEXT + " >= ? ";
 
     private static final String sLocationSettingWithDateSelection =
-            LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_CITY_NAME + " = ? AND" +
+            LocationEntry.TABLE_NAME + "." + LocationEntry.COLUMN_CITY_NAME + " = ? AND " +
                     WeatherEntry.TABLE_NAME + "." + WeatherEntry.COLUMN_DATE_TEXT + " = ? ";
 
     @Override
@@ -116,11 +116,11 @@ public class WeatherProvider extends ContentProvider {
             }
 
             case WEATHER_WITH_LOCATION: {
-                retCursor = getWeatherByLocationSettingAndStartDate(uri, projection, sortOrder);
+                retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
                 break;
             }
             case WEATHER_WITH_LOCATION_AND_DATE: {
-                retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
+                retCursor = getWeatherByLocationSettingAndStartDate(uri, projection, sortOrder);
                 break;
             }
             //for LocationEntry

@@ -139,12 +139,43 @@ public class TestWeatherProvider extends AndroidTestCase {
         //try to retrieve the inserted data
         String dateText = valuesWeather.getAsString(WeatherEntry.COLUMN_DATE_TEXT);
         Uri weatherWithLocationAndStartDateUri = WeatherEntry
-                .buildWeatherLocationStartDate(String.valueOf(idLocationRow), dateText);
+                .buildWeatherLocationStartDate(valuesLocation.getAsString(LocationEntry.COLUMN_CITY_NAME), dateText);
         Cursor cursorWeather = getCursorWithoutParameters(weatherWithLocationAndStartDateUri);
 
         //compare original dump data with the retrieved ones
         if (cursorWeather.moveToNext()) {
             assertValuesFromCursor(valuesWeather, cursorWeather);
+        } else
+            fail("Couldn't insert data and read it again properly, uri: " + uriInsertedWeatherRow);
+
+        cursorWeather.close();
+    }
+
+    /**
+     * Tests database writing-reading via uri request on WeatherContentProvider.
+     * This test uses uri: 'content://com.wordpress.iwih.sunshine/weather/location?date='something''.
+     */
+    public void testInsertRead_Weather_withLocationAndDate_Uri() {
+        //insert dump location data
+        ContentValues valuesLocation = getLocationValues();
+        Uri uriInsertedLocationRow = locationInsertData(valuesLocation);
+        long idLocationRow = ContentUris.parseId(uriInsertedLocationRow);
+
+        //insert dump weather data
+        ContentValues valuesWeather = getWeatherValues(idLocationRow);
+        Uri uriInsertedWeatherRow = weatherInsertData(valuesWeather);
+        assertTrue(uriInsertedWeatherRow != null);
+
+        //try to retrieve the inserted data
+        String dateText = valuesWeather.getAsString(WeatherEntry.COLUMN_DATE_TEXT);
+        Uri weatherWithLocationAndStartDateUri = WeatherEntry
+                .buildWeatherLocationWithDate(valuesLocation.getAsString(LocationEntry.COLUMN_CITY_NAME), dateText);
+        Cursor cursorWeather = getCursorWithoutParameters(weatherWithLocationAndStartDateUri);
+
+        //compare original dump data with the retrieved ones
+        if (cursorWeather.moveToNext()) {
+            assertValuesFromCursor(valuesWeather, cursorWeather);
+            assertValuesFromCursor(valuesLocation, cursorWeather);
         } else
             fail("Couldn't insert data and read it again properly, uri: " + uriInsertedWeatherRow);
 
