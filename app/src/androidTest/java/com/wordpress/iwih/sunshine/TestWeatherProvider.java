@@ -3,11 +3,9 @@ package com.wordpress.iwih.sunshine;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import com.wordpress.iwih.sunshine.data.WeatherContract;
 import com.wordpress.iwih.sunshine.data.WeatherContract.LocationEntry;
 import com.wordpress.iwih.sunshine.data.WeatherContract.WeatherEntry;
 import com.wordpress.iwih.sunshine.data.WeatherDbHelper;
@@ -22,9 +20,12 @@ public class TestWeatherProvider extends AndroidTestCase {
 
     private final Logger log = new Logger(this.getClass().getSimpleName());
 
-    private static final String CITY_NAME_TEST = "As Samawah";
-    private static final String LOCATION_SETTING_TEST = "98530";
-    private static final String START_DATE_TEST = "201605028";
+    private static final String TEST_CITY_NAME = "As Samawah";
+    private static final String TEST_CITY_NAME_1 = "New York";
+    private static final String TEST_LOCATION_SETTING = "98530";
+    private static final String TEST_LOCATION_SETTING_1 = "98890";
+    private static final String TEST_LOCATION_SETTING_2 = "98930";
+    private static final String TEST_START_DATE = "201605028";
 
     public void testDeleteDatabase() {
         mContext.deleteDatabase(WeatherDbHelper.WEATHER_DB_NAME);
@@ -49,7 +50,7 @@ public class TestWeatherProvider extends AndroidTestCase {
      * This test uses uri: 'content://com.wordpress.iwih.sunshine/weather'.
      */
     public void testInsertRead_Weather_Content_Uri() {
-        ContentValues valuesWeather = getWeatherValues(1);
+        ContentValues valuesWeather = getWeatherValues(1, TEST_START_DATE);
 
         Uri uriInsertedRow = weatherInsertData(valuesWeather);
         assertTrue(uriInsertedRow != null);
@@ -69,11 +70,11 @@ public class TestWeatherProvider extends AndroidTestCase {
      * This test uses uri: 'content://com.wordpress.iwih.sunshine/weather/location'.
      */
     public void testInsertRead_Weather_withLocation_Uri() {
-        ContentValues valuesLocation = getLocationValues();
+        ContentValues valuesLocation = getLocationValues(TEST_LOCATION_SETTING);
         Uri uriInsertedLocationRow = locationInsertData(valuesLocation);
         long locationRowId = ContentUris.parseId(uriInsertedLocationRow);
 
-        ContentValues valuesWeather = getWeatherValues(locationRowId);
+        ContentValues valuesWeather = getWeatherValues(locationRowId, TEST_START_DATE);
         Uri uriInsertedWeatherRow = weatherInsertData(valuesWeather);
         assertTrue(uriInsertedWeatherRow != null);
 
@@ -93,12 +94,12 @@ public class TestWeatherProvider extends AndroidTestCase {
      */
     public void testInsertRead_Weather_withLocationAndStartDate_Uri() {
         //insert dump location data
-        ContentValues valuesLocation = getLocationValues();
+        ContentValues valuesLocation = getLocationValues(TEST_LOCATION_SETTING);
         Uri uriInsertedLocationRow = locationInsertData(valuesLocation);
         long idLocationRow = ContentUris.parseId(uriInsertedLocationRow);
 
         //insert dump weather data
-        ContentValues valuesWeather = getWeatherValues(idLocationRow);
+        ContentValues valuesWeather = getWeatherValues(idLocationRow, TEST_START_DATE);
         Uri uriInsertedWeatherRow = weatherInsertData(valuesWeather);
         assertTrue(uriInsertedWeatherRow != null);
 
@@ -123,12 +124,12 @@ public class TestWeatherProvider extends AndroidTestCase {
      */
     public void testInsertRead_Weather_withLocationAndDate_Uri() {
         //insert dump location data
-        ContentValues valuesLocation = getLocationValues();
+        ContentValues valuesLocation = getLocationValues(TEST_LOCATION_SETTING);
         Uri uriInsertedLocationRow = locationInsertData(valuesLocation);
         long idLocationRow = ContentUris.parseId(uriInsertedLocationRow);
 
         //insert dump weather data
-        ContentValues valuesWeather = getWeatherValues(idLocationRow);
+        ContentValues valuesWeather = getWeatherValues(idLocationRow, TEST_START_DATE);
         Uri uriInsertedWeatherRow = weatherInsertData(valuesWeather);
         assertTrue(uriInsertedWeatherRow != null);
 
@@ -153,7 +154,7 @@ public class TestWeatherProvider extends AndroidTestCase {
      * This test uses uri: 'content://com.wordpress.iwih.sunshine/location'.
      */
     public void testInsertReadLocationViaUri() {
-        ContentValues valuesLocation = getLocationValues();
+        ContentValues valuesLocation = getLocationValues(TEST_LOCATION_SETTING);
 
         Uri uriInsertedRow = locationInsertData(valuesLocation);
         assertTrue(uriInsertedRow != null);
@@ -169,15 +170,47 @@ public class TestWeatherProvider extends AndroidTestCase {
     }
 
     /**
+     * Tests database writing-reading via uri request on WeatherContentProvider.
+     * This test uses uri: 'content://com.wordpress.iwih.sunshine/location'.
+     */
+    public void testUpdateLocation() {
+        //insert data
+        ContentValues valuesLocation1 = getLocationValues(TEST_LOCATION_SETTING_1);
+        Uri uriInsertedRow = locationInsertData(valuesLocation1);
+        assertTrue(uriInsertedRow != null);
+        long idInsertedRow = ContentUris.parseId(uriInsertedRow);
+
+        //update data
+        ContentValues valuesLocation2 = new ContentValues();
+        valuesLocation2.put(LocationEntry.COLUMN_CITY_NAME, TEST_CITY_NAME_1);
+        int rowsUpdated = mContext.getContentResolver()
+                .update(LocationEntry.CONTENT_URI,
+                        valuesLocation2,
+                        LocationEntry._ID + " = ?",
+                        new String[]{String.valueOf(idInsertedRow)});
+        assertTrue(rowsUpdated > 0);
+
+        //read data and compare it
+        Cursor cursorLocation = getCursorWithoutParameters(uriInsertedRow);
+
+        if (cursorLocation.moveToNext())
+            assertValuesFromCursor(valuesLocation1, cursorLocation);
+        else
+            fail("Couldn't insert data, update and read it again properly, uri: " + uriInsertedRow);
+
+        cursorLocation.close();
+    }
+
+    /**
      * Provides dump data for testing purpose.
      */
-    private static ContentValues getLocationValues() {
+    private static ContentValues getLocationValues(String locationSetting) {
         ContentValues locationValues = new ContentValues();
 
         float testCoordLong = 45.29f;
         float testCoordLat = 31.33f;
-        locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, LOCATION_SETTING_TEST);
-        locationValues.put(LocationEntry.COLUMN_CITY_NAME, CITY_NAME_TEST);
+        locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+        locationValues.put(LocationEntry.COLUMN_CITY_NAME, TEST_CITY_NAME);
         locationValues.put(LocationEntry.COLUMN_COORD_LONG, testCoordLong);
         locationValues.put(LocationEntry.COLUMN_COORD_LAT, testCoordLat);
 
@@ -188,9 +221,8 @@ public class TestWeatherProvider extends AndroidTestCase {
      * Provides dump data for testing purpose.
      *
      * @param locationRowId Prefered location id to be included in the data.
-     * @return
      */
-    private static ContentValues getWeatherValues(long locationRowId) {
+    private static ContentValues getWeatherValues(long locationRowId, String date) {
 
         int testWeatherId = 98530;
         String testShortDesc = "rainy!";
@@ -203,7 +235,7 @@ public class TestWeatherProvider extends AndroidTestCase {
 
         ContentValues weatherValues = new ContentValues();
         weatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, locationRowId);
-        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, START_DATE_TEST);
+        weatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, date);
         weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, testWeatherId);
         weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, testShortDesc);
         weatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, testTempMax);
