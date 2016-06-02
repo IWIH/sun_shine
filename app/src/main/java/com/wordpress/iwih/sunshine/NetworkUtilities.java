@@ -14,7 +14,7 @@ public class NetworkUtilities {
     public static boolean isNetworkAvailable(Activity activity, boolean notifyUI) {
         boolean isConnectedToNetwork = isNetworkAvailable(activity);
 
-        if (!isConnectedToNetwork)
+        if (!isConnectedToNetwork && notifyUI)
             Toast.makeText(activity, "No Internet Connection!", Toast.LENGTH_SHORT).show();
 
         return isConnectedToNetwork;

@@ -194,7 +194,7 @@ public class TestWeatherProvider extends AndroidTestCase {
         Cursor cursorLocation = getCursorWithoutParameters(uriInsertedRow);
 
         if (cursorLocation.moveToNext())
-            assertValuesFromCursor(valuesLocation1, cursorLocation);
+            assertValuesFromCursor(valuesLocation2, cursorLocation);
         else
             fail("Couldn't insert data, update and read it again properly, uri: " + uriInsertedRow);
 
