@@ -19,6 +19,10 @@ import com.wordpress.iwih.sunshine.data.WeatherContract.LocationEntry;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.SimpleFormatter;
+
 /**
  * Created by iwih on 29/05/2016.
  */
@@ -371,5 +375,10 @@ public class WeatherProvider extends ContentProvider {
             if (contentResolver != null)
                 contentResolver.notifyChange(uri, null);
         }
+    }
+
+    public String dbFormattedDate(Date date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+        return formatter.format(date);
     }
 }

@@ -192,12 +192,17 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
     private void parseCityAndCountryName(JSONObject cityJsonObj) {
         try {
             String cityName = cityJsonObj.getString("name");
+            String cityId = cityJsonObj.getString("id");
             String countryName = cityJsonObj.getString("country");
+
+            JSONObject coordModule = cityJsonObj.getJSONObject("coord");
+            String coord_lat = coordModule.getString("lat");
+            String coord_long = coordModule.getString("lon");
 
             String activityTitle = cityName + ", " + countryName;
             log.i("City name title: " + activityTitle);
 
-            this.activityTitle = activityTitle;
+            long id = addLocation(cityId, cityName, coord_long, coord_lat);
         } catch (JSONException e) {
             log.e("Couldn't parse city/country name(s): " + e.getMessage());
         }
@@ -219,17 +224,10 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
                 Long dayTemp = getDayTemp(dayTempJsonObj);
 
                 DateFormat dateFormat = new SimpleDateFormat(mContext.getString(R.string.date_format_main));
-                String dayForecastRow = (new StringBuilder())
-                        .append(dateFormat.format(weatherDate))
-                        .append(" \n")
-                        .append("Day: ")
-                        .append(dayTemp)
-                        .append(", ")
-                        .append("Max: ")
-                        .append(maxTemp)
-                        .append(", ")
-                        .append("Min: ")
-                        .append(minTemp).toString();
+                String dayForecastRow = dateFormat.format(weatherDate) + " \n" +
+                        "Day: " + dayTemp + ", " +
+                        "Max: " + maxTemp + ", " +
+                        "Min: " + minTemp;
 
                 log.i("Finished parsing day weather: " + dayForecastRow);
 
