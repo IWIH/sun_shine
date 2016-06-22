@@ -46,8 +46,6 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
 
         log.v("Checking network availability");
 
-        log.i(params.length + "x object(s) passed to FetchWeatherAsync worker.");
-
         cityName = params[0];
         dataMode = params[1];
         dataUnits = params[2];
@@ -178,9 +176,9 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
         try {
             JSONObject mainJson = new JSONObject(forecastJsonStr);
 
-            parseCityAndCountryName(mainJson.getJSONObject("city"));
+            long location_id = parseCityAndCountryName(mainJson.getJSONObject("city"));
 
-            parseWeatherData(mainJson.getJSONArray("list"));
+            parseWeatherData(mainJson.getJSONArray("list"), location_id);
         } catch (JSONException e) {
             log.e("Couldn't parse forecastJsonStr or/and display its content: " + e.getMessage());
         }
@@ -189,7 +187,8 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
 
     private String activityTitle;
 
-    private void parseCityAndCountryName(JSONObject cityJsonObj) {
+    private long parseCityAndCountryName(JSONObject cityJsonObj) {
+        long id = -1;
         try {
             String cityName = cityJsonObj.getString("name");
             String cityId = cityJsonObj.getString("id");
@@ -202,26 +201,39 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
             String activityTitle = cityName + ", " + countryName;
             log.i("City name title: " + activityTitle);
 
-            long id = addLocation(cityId, cityName, coord_long, coord_lat);
+            id = addLocation(cityId, cityName, coord_long, coord_lat);
         } catch (JSONException e) {
             log.e("Couldn't parse city/country name(s): " + e.getMessage());
         }
+        return id;
     }
 
     private ArrayList<String> forecastAListStr;
 
-    private void parseWeatherData(JSONArray weatherDataJsonArray) {
+    private void parseWeatherData(JSONArray weatherDataJsonArray, long location_id) {
 
-        ArrayList<String> forecastAListStr = new ArrayList<>();
+        ArrayList<String> forecastArrayListStr = new ArrayList<>();
+        int weatherDataContentLength = weatherDataJsonArray.length();
+        ContentValues[] weatherDataValues = new ContentValues[weatherDataContentLength];
+
         try {
-            for (int i = 0; i < weatherDataJsonArray.length(); i++) {
+            for (int i = 0; i < weatherDataContentLength; i++) {
 
-                Date weatherDate = getWeatherDayDate(weatherDataJsonArray.getJSONObject(i));
+                JSONObject currentDayWeather = weatherDataJsonArray.getJSONObject(i);
+                Date weatherDate = getWeatherDayDate(currentDayWeather);
 
-                JSONObject dayTempJsonObj = weatherDataJsonArray.getJSONObject(i).getJSONObject("temp");
-                Long maxTemp = getDayMaxTemp(dayTempJsonObj);
-                Long minTemp = getDayMinTemp(dayTempJsonObj);
-                Long dayTemp = getDayTemp(dayTempJsonObj);
+                Long humidity =  getObjectFromJSON(currentDayWeather, "humidity");
+                Long windSpeed = getObjectFromJSON(currentDayWeather, "speed");
+                Long windAzimuth = getObjectFromJSON(currentDayWeather, "deg");
+                Long pressure = getObjectFromJSON(currentDayWeather, "pressure");
+
+                JSONObject dayTempJsonObj = currentDayWeather.getJSONObject("temp");
+                Long maxTemp = getObjectFromJSON(dayTempJsonObj, "max");
+                Long minTemp = getObjectFromJSON(dayTempJsonObj, "min");
+                Long dayTemp = getObjectFromJSON(dayTempJsonObj, "day");
+
+                JSONObject weatherDescJsonObject = currentDayWeather.getJSONObject("weather");
+                String descWeather = (String) getObjectFromJSON(weatherDescJsonObject, "description");
 
                 DateFormat dateFormat = new SimpleDateFormat(mContext.getString(R.string.date_format_main));
                 String dayForecastRow = dateFormat.format(weatherDate) + " \n" +
@@ -231,15 +243,30 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
 
                 log.i("Finished parsing day weather: " + dayForecastRow);
 
-                forecastAListStr.add(dayForecastRow);
+                forecastArrayListStr.add(dayForecastRow);
 
+                ContentValues dayWeatherValues = new ContentValues();
+                dayWeatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
+                dayWeatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
+                dayWeatherValues.put(WeatherEntry.COLUMN_WIND_AZIMUTH, windAzimuth);
+                dayWeatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
+                dayWeatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MAX, maxTemp);
+                dayWeatherValues.put(WeatherEntry.COLUMN_TEMPERATURE_MIN, minTemp);
+                dayWeatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, location_id);
+                dayWeatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, descWeather);
+
+                weatherDataValues[i] = dayWeatherValues;
             }
 
+            //insert weather data to database bulky!
+            log.v("Trying to insert fetched weather data to database...");
+            int insertedWeatherDataCount = mContext.getContentResolver()
+                    .bulkInsert(WeatherEntry.CONTENT_URI, weatherDataValues);
         } catch (JSONException e) {
             log.e("Couldn't parse weather data: " + e.getMessage());
         }
 
-        this.forecastAListStr = forecastAListStr;
+        this.forecastAListStr = forecastArrayListStr;
     }
 
     private Date getWeatherDayDate(JSONObject dayWeatherObj) {
@@ -255,37 +282,20 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
         return weatherDate;
     }
 
-    private Long getDayMaxTemp(JSONObject dayTempJsonObj) {
-        Long dayMaxTemp = null;
+    private <T> T getObjectFromJSON(JSONObject parentJsonObject, String objectName) {
+        Object dayTemp = null;
+        Class<T> returnType;
         try {
-            dayMaxTemp = dayTempJsonObj.getLong("max");
+            if (returnType.equals(String.class)) dayTemp = parentJsonObject.getString(objectName);
+            else if (returnType.equals(long.class)) dayTemp = parentJsonObject.getLong(objectName);
+            else if (returnType.equals(double.class)) dayTemp = parentJsonObject.getDouble(objectName);
+            else if (returnType.equals(int.class)) dayTemp = parentJsonObject.getInt(objectName);
         } catch (JSONException e) {
-            log.e("Couldn't parse maximum temp of the day: " + e.getMessage());
+            log.e("Couldn't parse '" + objectName + "' object from the given parent: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        return dayMaxTemp;
-    }
-
-    private Long getDayMinTemp(JSONObject dayTempJsonObj) {
-        Long dayMinTemp = null;
-        try {
-            dayMinTemp = dayTempJsonObj.getLong("min");
-        } catch (JSONException e) {
-            log.e("Couldn't parse minimum temp of the day: " + e.getMessage());
-        }
-
-        return dayMinTemp;
-    }
-
-    private Long getDayTemp(JSONObject dayTempJsonObj) {
-        Long dayTemp = null;
-        try {
-            dayTemp = dayTempJsonObj.getLong("day");
-        } catch (JSONException e) {
-            log.e("Couldn't parse mid-day temp of the day: " + e.getMessage());
-        }
-
-        return dayTemp;
+        return (T)dayTemp;
     }
 
     private long addLocation(String locationSetting, String cityName, String longitude, String latitude) {
