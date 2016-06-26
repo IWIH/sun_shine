@@ -4,6 +4,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -216,6 +217,8 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
         int weatherDataContentLength = weatherDataJsonArray.length();
         ContentValues[] weatherDataValues = new ContentValues[weatherDataContentLength];
 
+        String locationWeatherKey = getLocationWeatherKey(location_id);
+
         try {
             for (int i = 0; i < weatherDataContentLength; i++) {
 
@@ -238,7 +241,8 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
                 String descWeather = getObjectFromJSON(weatherDescJsonObject, "description", String.class);
 
                 DateFormat dateFormat = new SimpleDateFormat(mContext.getString(R.string.date_format_main));
-                String dayForecastRow = dateFormat.format(weatherDate) + " \n" +
+                String formattedDate = dateFormat.format(weatherDate);
+                String dayForecastRow = formattedDate + " \n" +
                         "Day: " + dayTemp + ", " +
                         "Max: " + maxTemp + ", " +
                         "Min: " + minTemp;
@@ -248,6 +252,8 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
                 forecastArrayListStr.add(dayForecastRow);
 
                 ContentValues dayWeatherValues = new ContentValues();
+                dayWeatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, locationWeatherKey);
+                dayWeatherValues.put(WeatherEntry.COLUMN_DATE_TEXT, formattedDate);
                 dayWeatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
                 dayWeatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
                 dayWeatherValues.put(WeatherEntry.COLUMN_WIND_AZIMUTH, windAzimuth);
@@ -257,14 +263,13 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
                 dayWeatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, location_id);
                 dayWeatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, descWeather);
 
-                Uri insertedIndex = mContext.getContentResolver().insert(WeatherEntry.CONTENT_URI, dayWeatherValues);
-                //weatherDataValues[i] = dayWeatherValues;
+                weatherDataValues[i] = dayWeatherValues;
             }
 
             //insert weather data to database bulky!
             log.v("Trying to insert fetched weather data to database...");
-            //int insertedWeatherDataCount = mContext.getContentResolver()
-            //        .bulkInsert(WeatherEntry.CONTENT_URI, weatherDataValues);
+            int insertedWeatherDataCount = mContext.getContentResolver()
+                    .bulkInsert(WeatherEntry.CONTENT_URI, weatherDataValues);
         } catch (JSONException e) {
             log.e("Couldn't parse weather data: " + e.getMessage());
         }
@@ -336,6 +341,22 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
         }
 
         return _id;
+    }
+
+    private String getLocationWeatherKey(long locationId) {
+        Cursor queryCursor = mContext.getContentResolver().query(
+                LocationEntry.CONTENT_URI,
+                new String[]{LocationEntry.COLUMN_LOCATION_SETTING},
+                LocationEntry._ID + " = ?",
+                new String[]{String.valueOf(locationId)},
+                null);
+
+        if (queryCursor == null)
+            return null;
+        if (!queryCursor.moveToNext())
+            return null;
+
+        return queryCursor.getString(0);
     }
 
     /*private void populateWeatherArrayToUI() {
