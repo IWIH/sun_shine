@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
                 refreshWeatherData();
                 break;
             case R.id.menu_main_activity_show_on_map:
-                String location = SettingsActivity.getStringPreferences(this, getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+                String location = Utility.getStringPreferences(this, getString(R.string.pref_location_key), getString(R.string.pref_location_default));
                 MapServices.startMapIntent(this, location);
                 break;
             case R.id.menu_main_activity_settings:

@@ -6,7 +6,7 @@
         android:key="@string/pref_location_key"
         android:title="@string/location" />
     <ListPreference
-        android:defaultValue="@string/pref_units_default"
+        android:defaultValue="@string/pref_units_metric"
         android:dialogTitle="@string/pref_units_dialog_title"
         android:entries="@array/pref_general_units_entries"
         android:entryValues="@array/pref_general_units_entryValues"

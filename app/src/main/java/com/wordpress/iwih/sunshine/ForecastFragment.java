@@ -70,16 +70,16 @@ public class ForecastFragment extends Fragment {
 
         log.v("Calling FetchWeatherAsync...");
         String ironDefaultValue = getString(R.string.pref_location_default);
-        String location = SettingsActivity.getStringPreferences(
+        String location = Utility.getStringPreferences(
                 getActivity(),
                 getString(R.string.pref_location_key),
                 ironDefaultValue);
         if (location.equals(""))
             location = ironDefaultValue;
-        String units = SettingsActivity.getStringPreferences(
+        String units = Utility.getStringPreferences(
                 getActivity(),
                 getString(R.string.pref_units_key),
-                getString(R.string.pref_units_default));
+                getString(R.string.pref_units_metric));
         new FetchWeatherAsync(getActivity()).execute(location, "json", units, "7");
     }
 

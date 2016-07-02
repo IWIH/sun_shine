@@ -72,9 +72,4 @@ public class SettingsActivity extends PreferenceActivity
         context.startActivity(new Intent(context, SettingsActivity.class));
     }
 
-    public static String getStringPreferences(Context context, String key, String defaultValue) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return sharedPreferences.getString(key, defaultValue);
-    }
-
 }

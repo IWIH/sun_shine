@@ -4,7 +4,6 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -24,6 +23,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Vector;
 
 /**
  * Created by iwih on 02/06/2016.
@@ -214,8 +214,9 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
     private void parseWeatherData(JSONArray weatherDataJsonArray, long location_id) {
 
         ArrayList<String> forecastArrayListStr = new ArrayList<>();
+
         int weatherDataContentLength = weatherDataJsonArray.length();
-        ContentValues[] weatherDataValues = new ContentValues[weatherDataContentLength];
+        Vector<ContentValues> vectorWeatherValues = new Vector<>(weatherDataContentLength);
 
         String locationWeatherKey = getLocationWeatherKey(location_id);
 
@@ -236,7 +237,7 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
                 long dayTemp = getObjectFromJSON(dayTempJsonObj, "day", long.class);
 
                 JSONArray weatherDescJsonArray = currentDayWeather.getJSONArray("weather");
-                //log.i(String.valueOf(weatherDescJsonArray.length()));
+
                 JSONObject weatherDescJsonObject = weatherDescJsonArray.getJSONObject(0);
                 String descWeather = getObjectFromJSON(weatherDescJsonObject, "description", String.class);
 
@@ -263,13 +264,18 @@ public class FetchWeatherAsync extends AsyncTask<String, Void, Void> {
                 dayWeatherValues.put(WeatherEntry.COLUMN_LOCATION_KEY, location_id);
                 dayWeatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, descWeather);
 
-                weatherDataValues[i] = dayWeatherValues;
+                vectorWeatherValues.add(dayWeatherValues);
             }
 
             //insert weather data to database bulky!
-            log.v("Trying to insert fetched weather data to database...");
-            int insertedWeatherDataCount = mContext.getContentResolver()
-                    .bulkInsert(WeatherEntry.CONTENT_URI, weatherDataValues);
+            int vectorSize = vectorWeatherValues.size();
+            if (vectorSize > 0) {
+                ContentValues[] arrayWeatherValues = new ContentValues[vectorSize];
+                vectorWeatherValues.toArray(arrayWeatherValues);
+                log.v("Trying to insert fetched weather data to database...");
+                int insertedWeatherDataCount = mContext.getContentResolver()
+                        .bulkInsert(WeatherEntry.CONTENT_URI, arrayWeatherValues);
+            }
         } catch (JSONException e) {
             log.e("Couldn't parse weather data: " + e.getMessage());
         }
